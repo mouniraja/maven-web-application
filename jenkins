@@ -1,0 +1,30 @@
+node
+{
+
+def myHome=tool name:"maven3.6.2",type:"maven"
+stage('checkout'){
+git branch: 'development', credentialsId: 'c86056ee-9667-487c-b9a1-7455a6bf518f', url: 'https://github.com/mouniraja/maven-web-application'
+}
+stage('build')
+{
+ sh "${myHome}/bin/mvn clean package"
+}
+stage('sonarqubeReport')
+{
+sh "${myHome}/bin/mvn sonar:sonar"
+}
+stage('upload artifactory nexus')
+{
+ sh "${myHome}/bin/mvn deploy"
+}
+
+stage('DeploytoTomacat')
+{
+sshagent(['9c6f4fc7-52ed-4fae-b120-14f1714ca246']) {
+ sh  "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@13.233.91.228:/opt/apache-tomcat-9.0.27/webapps/maven-web-application.war"
+
+}
+}
+
+
+}
